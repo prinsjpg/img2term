@@ -10,12 +10,52 @@ typedef struct
 
 int main(int argc, char *argv[])
 {
+    // 1. Controllo base degli argomenti
     if (argc < 2)
+    {
+        printf("Uso: %s <immagine.bmp> [-color | -bg]\n", argv[0]);
         return 1;
+    }
 
+    // --- NUOVO: CONTROLLO OPZIONI (FAIL FAST) ---
+    int scelta = 1; // Default: Testo colorato
+
+    if (argc == 3)
+    {
+        if (strcmp(argv[2], "-bg") == 0)
+        {
+            scelta = 2;
+        }
+        else if (strcmp(argv[2], "-color") == 0)
+        {
+            scelta = 1;
+        }
+        else
+        {
+            // ERRORE BLOCCANTE: stampiamo l'errore e fermiamo subito il programma
+            printf("Errore: Opzione '%s' non riconosciuta.\n", argv[2]);
+            printf("Usa '-color' per il testo colorato o '-bg' per i pixel pieni.\n");
+            return 1;
+        }
+    }
+    // ---------------------------------------------
+
+    // 2. Solo se i comandi sono corretti, procediamo ad aprire il file...
     FILE *file = fopen(argv[1], "rb");
     if (!file)
+    {
+        printf("Errore: Impossibile aprire il file '%s'.\n", argv[1]);
         return 1;
+    }
+
+    char magic[2];
+    fread(magic, 1, 2, file);
+    if (magic[0] != 'B' || magic[1] != 'M')
+    {
+        printf("Errore: Il file fornito non è un'immagine BMP valida!\n");
+        fclose(file);
+        return 1;
+    }
 
     // 1. Estraiamo le dimensioni e l'offset
     int larghezza, altezza, offset_dati;
@@ -54,11 +94,6 @@ int main(int argc, char *argv[])
         }
         fseek(file, padding, SEEK_CUR); // Saltiamo i byte di troppo
     }
-
-    // SCELTA UTENTE
-    int scelta;
-    printf("1. Testo colorato\n2. Sfondo colorato\nScelta: ");
-    scanf("%d", &scelta);
 
     // STAMPA DELL'IMMAGINE ASCII NEL TERMINALE
     // Stampa l'immagine al contrario per correggere l'orientamento
