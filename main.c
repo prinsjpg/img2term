@@ -102,7 +102,12 @@ int main(int argc, char *argv[])
     }
 
     char magic[2];
-    fread(magic, 1, 2, file);
+    if (fread(magic, 1, 2, file) != 2)
+    {
+        printf("Errore: Impossibile leggere i primi byte del file.\n");
+        fclose(file);
+        return 1;
+    }
     if (magic[0] != 'B' || magic[1] != 'M')
     {
         printf("Errore: Il file fornito non è un'immagine BMP valida!\n");
@@ -114,11 +119,20 @@ int main(int argc, char *argv[])
     int larghezza, altezza, offset_dati;
 
     fseek(file, 18, SEEK_SET);
-    fread(&larghezza, 4, 1, file);
-    fread(&altezza, 4, 1, file);
+    if (fread(&larghezza, 4, 1, file) != 1 || fread(&altezza, 4, 1, file) != 1)
+    {
+        printf("Errore: Impossibile leggere le dimensioni dell'immagine.\n");
+        fclose(file);
+        return 1;
+    }
 
     fseek(file, 10, SEEK_SET);
-    fread(&offset_dati, 4, 1, file);
+    if (fread(&offset_dati, 4, 1, file) != 1)
+    {
+        printf("Errore: Impossibile leggere la posizione dei dati.\n");
+        fclose(file);
+        return 1;
+    }
 
     // ALLOCAZIONE DINAMICA DELLA MATRICE PER SALVARE I CARATTERI ASCII DELL'IMMAGINE
     Pixel **immagine = (Pixel **)malloc(altezza * sizeof(Pixel *));
@@ -137,7 +151,11 @@ int main(int argc, char *argv[])
         for (int c = 0; c < larghezza; c++)
         {
             unsigned char bgr[3];
-            fread(bgr, 1, 3, file);
+            if (fread(bgr, 1, 3, file) != 3)
+            {
+                printf("Errore critico: I dati dell'immagine sono tagliati o incompleti!\n");
+                return 1; // Chiude il programma immediatamente
+            }
             immagine[r][c].r = bgr[2];
             immagine[r][c].g = bgr[1];
             immagine[r][c].b = bgr[0];
