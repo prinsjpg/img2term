@@ -2,20 +2,20 @@
 #include <stdlib.h>
 #include <string.h>
 
+typedef struct
+{
+    char carattere;
+    int r, g, b;
+} Pixel;
+
 int main(int argc, char *argv[])
 {
     if (argc < 2)
-    {
-        printf("Uso: %s <immagine.bmp>\n", argv[0]);
         return 1;
-    }
 
     FILE *file = fopen(argv[1], "rb");
-    if (file == NULL)
-    {
-        printf("Errore: Impossibile aprire il file.\n");
+    if (!file)
         return 1;
-    }
 
     // 1. Estraiamo le dimensioni e l'offset
     int larghezza, altezza, offset_dati;
@@ -28,49 +28,56 @@ int main(int argc, char *argv[])
     fread(&offset_dati, 4, 1, file);
 
     // ALLOCAZIONE DINAMICA DELLA MATRICE PER SALVARE I CARATTERI ASCII DELL'IMMAGINE
-    char **immagine = (char **)malloc(altezza * sizeof(char *));
-    if (immagine == NULL)
-    {
-        return 1;
-    }
+    Pixel **immagine = (Pixel **)malloc(altezza * sizeof(Pixel *));
 
     for (int i = 0; i < altezza; i++)
     {
-        immagine[i] = (char *)malloc(larghezza * sizeof(char));
-        if (immagine[i] == NULL)
-        {
-            return 1;
-        }
+        immagine[i] = (Pixel *)malloc(larghezza * sizeof(Pixel));
     }
 
+    // LETTURA DEI PIXEL E SALVATAGGIO NELLA MATRICE
     char tavolozza[] = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^";
     int padding = (4 - (larghezza * 3) % 4) % 4;
-
-    // LETTURA DEI PIXEL E SALVATAGGIO NELLA MATRICE
     fseek(file, offset_dati, SEEK_SET);
-    for (int riga = 0; riga < altezza; riga++)
+
+    for (int r = 0; r < altezza; r++)
     {
-        for (int colonna = 0; colonna < larghezza; colonna++)
+        for (int c = 0; c < larghezza; c++)
         {
-            unsigned char pixel[3];
-            fread(pixel, 1, 3, file);
-
-            int grigio = (pixel[0] + pixel[1] + pixel[2]) / 3;
-            int indice = (grigio * (strlen(tavolozza) - 1)) / 255;
-
-            immagine[riga][colonna] = tavolozza[indice];
+            unsigned char bgr[3];
+            fread(bgr, 1, 3, file);
+            immagine[r][c].r = bgr[2];
+            immagine[r][c].g = bgr[1];
+            immagine[r][c].b = bgr[0];
+            int grigio = (bgr[0] + bgr[1] + bgr[2]) / 3;
+            immagine[r][c].carattere = tavolozza[(grigio * (strlen(tavolozza) - 1)) / 255];
         }
         fseek(file, padding, SEEK_CUR); // Saltiamo i byte di troppo
     }
 
+    // SCELTA UTENTE
+    int scelta;
+    printf("1. Testo colorato\n2. Sfondo colorato\nScelta: ");
+    scanf("%d", &scelta);
+
     // STAMPA DELL'IMMAGINE ASCII NEL TERMINALE
     // Stampa l'immagine al contrario per correggere l'orientamento
-    for (int riga = altezza - 1; riga >= 0; riga--)
+    for (int r = altezza - 1; r >= 0; r--)
     {
-        for (int colonna = 0; colonna < larghezza; colonna++)
+        for (int c = 0; c < larghezza; c++)
         {
-            // Stampa ogni carattere due volte per migliorare la proporzione
-            printf("%c%c", immagine[riga][colonna], immagine[riga][colonna]);
+            switch (scelta)
+            {
+            case 1:
+                printf("\033[38;2;%d;%d;%dm%c%c\033[0m",
+                       immagine[r][c].r, immagine[r][c].g, immagine[r][c].b,
+                       immagine[r][c].carattere, immagine[r][c].carattere);
+                break;
+            case 2:
+                printf("\033[48;2;%d;%d;%dm  \033[0m",
+                       immagine[r][c].r, immagine[r][c].g, immagine[r][c].b);
+                break;
+            }
         }
         printf("\n");
     }
@@ -81,8 +88,7 @@ int main(int argc, char *argv[])
         free(immagine[i]);
     }
     free(immagine);
-    immagine = NULL; // Evitare dangling pointer
-
     fclose(file);
+
     return 0;
 }
