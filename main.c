@@ -8,6 +8,59 @@ typedef struct
     int r, g, b;
 } Pixel;
 
+const char tavolozza[] = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^";
+
+void stampa_ascii(Pixel **immagine, int larghezza, int altezza, int scelta)
+{
+    int max_larghezza = 80;
+    int step = 1;
+    if (larghezza > max_larghezza)
+    {
+        step = larghezza / max_larghezza;
+    }
+
+    for (int r = altezza - 1; r >= 0; r -= step)
+    {
+        for (int c = 0; c < larghezza; c += step)
+        {
+            int somma_r = 0, somma_g = 0, somma_b = 0;
+            int pixel_contati = 0;
+
+            for (int i = 0; i < step && (r - i) >= 0; i++)
+            {
+                for (int j = 0; j < step && (c + j) < larghezza; j++)
+                {
+                    somma_r += immagine[r - i][c + j].r;
+                    somma_g += immagine[r - i][c + j].g;
+                    somma_b += immagine[r - i][c + j].b;
+                    pixel_contati++;
+                }
+            }
+
+            int media_r = somma_r / pixel_contati;
+            int media_g = somma_g / pixel_contati;
+            int media_b = somma_b / pixel_contati;
+
+            int grigio = (media_r + media_g + media_b) / 3;
+            char char_medio = tavolozza[(grigio * (strlen(tavolozza) - 1)) / 255];
+
+            switch (scelta)
+            {
+            case 1:
+                printf("\033[38;2;%d;%d;%dm%c%c\033[0m",
+                       media_r, media_g, media_b,
+                       char_medio, char_medio);
+                break;
+            case 2:
+                printf("\033[48;2;%d;%d;%dm  \033[0m",
+                       media_r, media_g, media_b);
+                break;
+            }
+        }
+        printf("\n");
+    }
+}
+
 int main(int argc, char *argv[])
 {
     // 1. Controllo base degli argomenti
@@ -76,7 +129,6 @@ int main(int argc, char *argv[])
     }
 
     // LETTURA DEI PIXEL E SALVATAGGIO NELLA MATRICE
-    char tavolozza[] = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^";
     int padding = (4 - (larghezza * 3) % 4) % 4;
     fseek(file, offset_dati, SEEK_SET);
 
@@ -96,52 +148,7 @@ int main(int argc, char *argv[])
     }
 
     // STAMPA DELL'IMMAGINE ASCII NEL TERMINALE
-    // Stampa l'immagine al contrario per correggere l'orientamento
-    int max_larghezza = 80;
-
-    int step = 1;
-    if (larghezza > max_larghezza) {
-        step = larghezza / max_larghezza;
-    }
-
-    for (int r = altezza - 1; r >= 0; r-=step)
-    {
-        for (int c = 0; c < larghezza; c += step)
-        {
-            int somma_r = 0, somma_g = 0, somma_b = 0;
-            int pixel_contati = 0;
-
-            for (int i = 0; i < step && (r - i) >= 0; i++) {
-                for (int j = 0; j < step && (c + j) < larghezza; j++) {
-                    somma_r += immagine[r - i][c + j].r;
-                    somma_g += immagine[r - i][c + j].g;
-                    somma_b += immagine[r - i][c + j].b;
-                    pixel_contati++;
-                }
-            }
-
-            int media_r = somma_r / pixel_contati;
-            int media_g = somma_g / pixel_contati;
-            int media_b = somma_b / pixel_contati;
-
-            int grigio = (media_r + media_g + media_b) / 3;
-            char char_medio = tavolozza[(grigio * (strlen(tavolozza) - 1)) / 255];
-
-            switch (scelta)
-            {
-            case 1:
-                printf("\033[38;2;%d;%d;%dm%c%c\033[0m",
-                       media_r, media_g, media_b,
-                       char_medio, char_medio);
-                break;
-            case 2:
-                printf("\033[48;2;%d;%d;%dm  \033[0m",
-                       media_r, media_g, media_b);
-                break;
-            }
-        }
-        printf("\n");
-    }
+    stampa_ascii(immagine, larghezza, altezza, scelta);
 
     // PULIZIA DELLA MEMORIA ALLOCATA E CHIUSURA DEL FILE
     for (int i = 0; i < altezza; i++)
