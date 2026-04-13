@@ -97,20 +97,46 @@ int main(int argc, char *argv[])
 
     // STAMPA DELL'IMMAGINE ASCII NEL TERMINALE
     // Stampa l'immagine al contrario per correggere l'orientamento
-    for (int r = altezza - 1; r >= 0; r--)
+    int max_larghezza = 80;
+
+    int step = 1;
+    if (larghezza > max_larghezza) {
+        step = larghezza / max_larghezza;
+    }
+
+    for (int r = altezza - 1; r >= 0; r-=step)
     {
-        for (int c = 0; c < larghezza; c++)
+        for (int c = 0; c < larghezza; c += step)
         {
+            int somma_r = 0, somma_g = 0, somma_b = 0;
+            int pixel_contati = 0;
+
+            for (int i = 0; i < step && (r - i) >= 0; i++) {
+                for (int j = 0; j < step && (c + j) < larghezza; j++) {
+                    somma_r += immagine[r - i][c + j].r;
+                    somma_g += immagine[r - i][c + j].g;
+                    somma_b += immagine[r - i][c + j].b;
+                    pixel_contati++;
+                }
+            }
+
+            int media_r = somma_r / pixel_contati;
+            int media_g = somma_g / pixel_contati;
+            int media_b = somma_b / pixel_contati;
+
+            int grigio = (media_r + media_g + media_b) / 3;
+            char char_medio = tavolozza[(grigio * (strlen(tavolozza) - 1)) / 255];
+
             switch (scelta)
             {
             case 1:
                 printf("\033[38;2;%d;%d;%dm%c%c\033[0m",
-                       immagine[r][c].r, immagine[r][c].g, immagine[r][c].b,
-                       immagine[r][c].carattere, immagine[r][c].carattere);
+                       media_r, media_g, media_b,
+                       char_medio, char_medio);
                 break;
             case 2:
                 printf("\033[48;2;%d;%d;%dm  \033[0m",
-                       immagine[r][c].r, immagine[r][c].g, immagine[r][c].b);
+                       media_r, media_g, media_b);
                 break;
             }
         }
