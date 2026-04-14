@@ -61,6 +61,50 @@ void stampa_ascii(Pixel **immagine, int larghezza, int altezza, int scelta)
     }
 }
 
+void esporta_html(Pixel **immagine, int larghezza, int altezza) {
+    FILE *html = fopen("risultato.html", "w");
+    if (!html) {
+        printf("Errore: impossibile creare il file risultato.html\n");
+        return;
+    }
+
+    // Intestazione della pagina web (sfondo nero e font monospazio)
+    fprintf(html, "<html><body style='background-color: black; font-family: monospace; white-space: pre; line-height: 8px; font-size: 8px;'>\n");
+
+    int max_larghezza = 150; // In HTML possiamo fare immagini un po' più larghe!
+    int step = 1; 
+    if (larghezza > max_larghezza) step = larghezza / max_larghezza;
+
+    for (int r = altezza - 1; r >= 0; r -= step) {
+        for (int c = 0; c < larghezza; c += step) {
+            int somma_r = 0, somma_g = 0, somma_b = 0, count = 0;
+            
+            for (int i = 0; i < step && (r - i) >= 0; i++) {
+                for (int j = 0; j < step && (c + j) < larghezza; j++) {
+                    somma_r += immagine[r - i][c + j].r;
+                    somma_g += immagine[r - i][c + j].g;
+                    somma_b += immagine[r - i][c + j].b;
+                    count++;
+                }
+            }
+            int media_r = somma_r / count;
+            int media_g = somma_g / count;
+            int media_b = somma_b / count;
+
+            int grigio = (media_r + media_g + media_b) / 3;
+            char char_medio = tavolozza[(grigio * (strlen(tavolozza) - 1)) / 255];
+
+            // Stampiamo un singolo carattere colorato dentro l'HTML!
+            fprintf(html, "<span style='color: rgb(%d,%d,%d)'>%c</span>", media_r, media_g, media_b, char_medio);
+        }
+        fprintf(html, "<br>\n"); // Andiamo a capo nell'HTML
+    }
+
+    fprintf(html, "</body></html>\n");
+    fclose(html);
+    printf("Immagine esportata con successo in 'risultato.html'! Aprilo nel tuo browser.\n");
+}
+
 int main(int argc, char *argv[])
 {
     // 1. Controllo base degli argomenti
@@ -82,12 +126,14 @@ int main(int argc, char *argv[])
         else if (strcmp(argv[2], "-color") == 0)
         {
             scelta = 1;
+        } else if(strcmp(argv[2], "-html") == 0) {
+            scelta = 3;
         }
         else
         {
             // ERRORE BLOCCANTE: stampiamo l'errore e fermiamo subito il programma
             printf("Errore: Opzione '%s' non riconosciuta.\n", argv[2]);
-            printf("Usa '-color' per il testo colorato o '-bg' per i pixel pieni.\n");
+            printf("Usa '-color' per il testo colorato, '-bg' per i pixel pieni o '-html' per l'output HTML.\n");
             return 1;
         }
     }
@@ -166,7 +212,12 @@ int main(int argc, char *argv[])
     }
 
     // STAMPA DELL'IMMAGINE ASCII NEL TERMINALE
-    stampa_ascii(immagine, larghezza, altezza, scelta);
+    if(scelta == 3) {
+        esporta_html(immagine, larghezza, altezza);
+    } else {
+        stampa_ascii(immagine, larghezza, altezza, scelta);
+    }
+    
 
     // PULIZIA DELLA MEMORIA ALLOCATA E CHIUSURA DEL FILE
     for (int i = 0; i < altezza; i++)
