@@ -1,17 +1,15 @@
-# Definiamo il compilatore e le "flags" (opzioni di avviso e ottimizzazione)
 CC = gcc
 CFLAGS = -Wall -Wextra -O2
-
-# Il nome del nostro file eseguibile finale
 TARGET = img2term
+OBJ = main.o bmp.o render.o
 
-# La regola predefinita che viene eseguita quando scrivi "make"
 all: $(TARGET)
 
-# Come costruire il programma
-$(TARGET): main.c
-	$(CC) $(CFLAGS) main.c -o $(TARGET)
+$(TARGET): $(OBJ)
+	$(CC) $(CFLAGS) $(OBJ) -o $(TARGET)
 
-# Un comando utile per fare "pulizia"
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
 clean:
-	rm -f $(TARGET)
+	rm -f $(TARGET) $(OBJ)
