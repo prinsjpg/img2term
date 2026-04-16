@@ -1,0 +1,8 @@
+# Eseguibile
+img2term
+
+# File oggetto
+*.o
+
+# Cartella VS Code (opzionale, dipende da te)
+.vscode/
