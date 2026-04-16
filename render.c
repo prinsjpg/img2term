@@ -43,7 +43,7 @@ void stampa_ascii(Pixel **immagine, int larghezza, int altezza, int scelta)
             &media_r, &media_g, &media_b);
 
             int grigio = (media_r + media_g + media_b) / 3;
-            char char_medio = tavolozza[(grigio * lunghezza_tavolozza) / 255];
+            char char_medio = tavolozza[(grigio * lunghezza_tavolozza -1 ) / 255];
 
             switch (scelta)
             {
@@ -63,6 +63,7 @@ void stampa_ascii(Pixel **immagine, int larghezza, int altezza, int scelta)
 }
 
 void esporta_html(Pixel **immagine, int larghezza, int altezza) {
+    const int lunghezza_tavolozza = strlen(tavolozza);
     FILE *html = fopen("risultato.html", "w");
     if (!html) {
         printf("Errore: impossibile creare il file risultato.html\n");
@@ -83,7 +84,7 @@ void esporta_html(Pixel **immagine, int larghezza, int altezza) {
               &media_r, &media_g, &media_b);
 
             int grigio = (media_r + media_g + media_b) / 3;
-            char char_medio = tavolozza[(grigio * (strlen(tavolozza) - 1)) / 255];
+            char char_medio = tavolozza[(grigio * (lunghezza_tavolozza - 1)) / 255];
 
             // Stampiamo un singolo carattere colorato dentro l'HTML!
             fprintf(html, "<span style='color: rgb(%d,%d,%d)'>%c</span>", media_r, media_g, media_b, char_medio);

@@ -140,11 +140,8 @@ int main(int argc, char *argv[])
     }
 
     // PULIZIA DELLA MEMORIA ALLOCATA E CHIUSURA DEL FILE
-    for (int i = 0; i < altezza; i++)
-    {
-        free(immagine[i]);
-    }
-    free(immagine);
+    libera_immagine(immagine, altezza);
+    
     fclose(file);
 
     return 0;
