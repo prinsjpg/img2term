@@ -22,26 +22,41 @@ int main(int argc, char *argv[])
 
     // --- NUOVO: CONTROLLO OPZIONI (FAIL FAST) ---
     Modalita scelta = MODALITA_COLOR; // Default: Testo colorato
+    int max_larghezza = 80;           // Larghezza massima di default per l'output ASCII
 
-    if (argc == 3)
+    for (int i = 2; i < argc; i++)
     {
-        if (strcmp(argv[2], "-bg") == 0)
+        if (strcmp(argv[i], "-bg") == 0)
         {
             scelta = MODALITA_BG;
         }
-        else if (strcmp(argv[2], "-color") == 0)
+        else if (strcmp(argv[i], "-color") == 0)
         {
             scelta = MODALITA_COLOR;
         }
-        else if (strcmp(argv[2], "-html") == 0)
+        else if (strcmp(argv[i], "-html") == 0)
         {
             scelta = MODALITA_HTML;
         }
+        else if (strcmp(argv[i], "-w") == 0)
+        {
+            if (i + 1 >= argc)
+            {
+                printf("Errore: '-w' richiede un numero. Es: -w 120\n");
+                return 1;
+            }
+            max_larghezza = atoi(argv[i + 1]);
+            if (max_larghezza <= 0)
+            {
+                printf("Errore: la larghezza deve essere un numero positivo.\n");
+                return 1;
+            }
+            i++; // saltiamo il numero che abbiamo appena letto
+        }
         else
         {
-            // ERRORE BLOCCANTE: stampiamo l'errore e fermiamo subito il programma
-            printf("Errore: Opzione '%s' non riconosciuta.\n", argv[2]);
-            printf("Usa '-color' per il testo colorato, '-bg' per i pixel pieni o '-html' per l'output HTML.\n");
+            printf("Errore: Opzione '%s' non riconosciuta.\n", argv[i]);
+            printf("Opzioni: -color | -bg | -html | -w <numero>\n");
             return 1;
         }
     }
@@ -132,16 +147,16 @@ int main(int argc, char *argv[])
     // STAMPA DELL'IMMAGINE ASCII NEL TERMINALE
     if (scelta == MODALITA_HTML)
     {
-        esporta_html(immagine, larghezza, altezza);
+        esporta_html(immagine, larghezza, altezza, max_larghezza);
     }
     else
     {
-        stampa_ascii(immagine, larghezza, altezza, scelta);
+        stampa_ascii(immagine, larghezza, altezza, scelta, max_larghezza);
     }
 
     // PULIZIA DELLA MEMORIA ALLOCATA E CHIUSURA DEL FILE
     libera_immagine(immagine, altezza);
-    
+
     fclose(file);
 
     return 0;

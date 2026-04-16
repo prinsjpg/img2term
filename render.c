@@ -24,10 +24,9 @@ void calcola_media(Pixel **immagine, int r, int c, int step,
     *out_b = somma_b / pixel_contati;
 }
 
-void stampa_ascii(Pixel **immagine, int larghezza, int altezza, int scelta)
+void stampa_ascii(Pixel **immagine, int larghezza, int altezza, int scelta, int max_larghezza)
 {
     const int lunghezza_tavolozza = strlen(tavolozza);
-    int max_larghezza = 80;
     int step = 1;
     if (larghezza > max_larghezza)
     {
@@ -62,7 +61,7 @@ void stampa_ascii(Pixel **immagine, int larghezza, int altezza, int scelta)
     }
 }
 
-void esporta_html(Pixel **immagine, int larghezza, int altezza) {
+void esporta_html(Pixel **immagine, int larghezza, int altezza, int max_larghezza) {
     const int lunghezza_tavolozza = strlen(tavolozza);
     FILE *html = fopen("risultato.html", "w");
     if (!html) {
@@ -73,7 +72,6 @@ void esporta_html(Pixel **immagine, int larghezza, int altezza) {
     // Intestazione della pagina web (sfondo nero e font monospazio)
     fprintf(html, "<html><body style='background-color: black; font-family: monospace; white-space: pre; line-height: 8px; font-size: 8px;'>\n");
 
-    int max_larghezza = 150; // In HTML possiamo fare immagini un po' più larghe!
     int step = 1; 
     if (larghezza > max_larghezza) step = larghezza / max_larghezza;
 
